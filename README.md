@@ -1,6 +1,6 @@
 # 🐾 Miko - AI native 效率工具型桌宠
 
-Built in # AdventureX25
+Built in #AdventureX2025
 
 Miko 是一个AI native 效率工具型桌宠，可以帮你收发邮件、整理桌面、执行Python代码、执行工作流等各种任务。只需要用自然语言告诉它你想做什么，它就能帮你完成！
 
