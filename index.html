@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Desktop Pet</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: transparent !important;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+
+    #root {
+      width: 100%;
+      height: 100vh;
+      background: transparent !important;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+  <script>
+    const { useState } = React;
+
+    // 简化的图标组件
+    const Loader2 = ({ className, ...props }) =>
+      React.createElement('div', {
+        className: className,
+        style: {
+          width: '16px',
+          height: '16px',
+          border: '2px solid #e5e7eb',
+          borderTop: '2px solid #6b7280',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+          ...props.style
+        }
+      });
+
+    const Plus = ({ className, ...props }) =>
+      React.createElement('div', {
+        className: className,
+        style: {
+          width: '20px',
+          height: '20px',
+          fontSize: '20px',
+          color: '#9ca3af',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          ...props.style
+        }
+      }, '+');
+
+    const Mic = ({ className, ...props }) =>
+      React.createElement('div', {
+        className: className,
+        style: {
+          width: '20px',
+          height: '20px',
+          fontSize: '20px',
+          color: '#9ca3af',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'color 0.2s',
+          ...props.style
+        },
+        onMouseEnter: (e) => e.target.style.color = '#6b7280',
+        onMouseLeave: (e) => e.target.style.color = '#9ca3af'
+      }, '🎤');
+
+    const FloatingChat = () => {
+      const [chatState, setChatState] = useState("with-response");
+      const [message, setMessage] = useState("");
+      const [aiResponse, setAiResponse] = useState("Miko正在启动中... 🐾");
+      const [ws, setWs] = useState(null);
+      const [connectionStatus, setConnectionStatus] = useState('disconnected');
+      const [isComposing, setIsComposing] = useState(false);
+      const [isChatVisible, setIsChatVisible] = useState(true);
+
+      // WebSocket 连接
+      React.useEffect(() => {
+        const connectWebSocket = () => {
+          const websocket = new WebSocket('ws://localhost:8000/ws/chat');
+
+          websocket.onopen = () => {
+            console.log('WebSocket 连接成功');
+            setConnectionStatus('connected');
+            setWs(websocket);
+
+            // 请求个性化打招呼信息
+            const greetingRequest = {
+              type: 'greeting',
+              content: 'get_personalized_greeting'
+            };
+            websocket.send(JSON.stringify(greetingRequest));
+          };
+
+          websocket.onmessage = (event) => {
+            try {
+              const data = JSON.parse(event.data);
+              if (data.type === 'reply') {
+                setAiResponse(data.content);
+                setChatState("with-response");
+              }
+            } catch (error) {
+              console.error('解析消息失败:', error);
+            }
+          };
+
+          websocket.onclose = () => {
+            console.log('WebSocket 连接关闭');
+            setConnectionStatus('disconnected');
+            setAiResponse("Miko有点困了... 😴 请稍等");
+            // 5秒后重连
+            setTimeout(connectWebSocket, 5000);
+          };
+
+          websocket.onerror = (error) => {
+            console.error('WebSocket 错误:', error);
+            setConnectionStatus('error');
+            setAiResponse("Miko有点困了... 😪 请稍等");
+          };
+        };
+
+        connectWebSocket();
+
+        // 清理函数
+        return () => {
+          if (ws) {
+            ws.close();
+          }
+        };
+      }, []);
+
+      // 发送消息到后端
+      const sendMessageToAI = (userInput) => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          setChatState("responding");
+          const message = {
+            type: 'message',
+            content: userInput
+          };
+          ws.send(JSON.stringify(message));
+          return true;
+        } else {
+          setAiResponse("Miko还没准备好... 🐾\n请稍等一下");
+          return false;
+        }
+      };
+
+      const handleSubmit = () => {
+        if (!message.trim() || connectionStatus !== 'connected') return;
+
+        const success = sendMessageToAI(message.trim());
+        if (success) {
+          setMessage(""); // 清空输入框
+        }
+      };
+
+      return React.createElement('div', {
+        style: {
+          minHeight: '100vh',
+          background: 'transparent',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-start',
+          padding: '10px'
+        }
+      },
+        // 桌宠容器 - 作为定位参考点
+        React.createElement('div', {
+          style: {
+            width: '120px',
+            height: '120px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            WebkitAppRegion: 'drag',
+            marginLeft: '10px'
+          }
+        },
+          // 桌宠本体
+          React.createElement('div', {
+            style: {
+              width: '120px',
+              height: '120px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }
+          },
+            React.createElement('img', {
+              src: './assets/pet up-down.gif',
+              alt: 'Pet animation',
+              onDoubleClick: () => setIsChatVisible(!isChatVisible),
+              style: {
+                width: '140px',
+                height: '120px',
+                objectFit: 'contain',
+                objectPosition: 'center',
+                cursor: 'pointer'
+              }
+            })
+          ),
+
+          // 聊天框 - 绝对定位，相对桌宠居中
+          React.createElement('div', {
+            style: {
+              position: 'absolute',
+              left: '100%',
+              marginLeft: '15px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '15px',
+              WebkitAppRegion: 'no-drag'
+            }
+          },
+            // Chat bubble - 固定位置
+            React.createElement('div', {
+              style: {
+                minHeight: '60px',
+                display: 'flex',
+                alignItems: 'center'
+              }
+            },
+              (chatState === "with-response" || chatState === "responding") &&
+              React.createElement('div', {
+                style: {
+                  background: '#ffffff',
+                  borderRadius: '18px',
+                  padding: '16px 20px',
+                  maxWidth: '280px',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1)'
+                }
+              },
+                chatState === "responding" ?
+                  React.createElement('div', {
+                    style: {
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      color: '#6b7280'
+                    }
+                  },
+                    React.createElement(Loader2, { style: { animation: 'spin 1s linear infinite' } }),
+                    React.createElement('span', { style: { fontSize: '13px' } }, 'Thinking...')
+                  ) :
+                  React.createElement('div', {
+                    style: {
+                      color: '#374151',
+                      fontSize: '14px',
+                      lineHeight: '1.4'
+                    }
+                  },
+                    aiResponse.split('\n').map((line, index) =>
+                      React.createElement('div', { key: index }, line)
+                    )
+                  )
+              )
+            ),
+
+            // Input - 固定位置
+            (chatState === "input" || chatState === "with-response") &&
+            React.createElement('div', {
+              style: {
+                background: '#ffffff',
+                borderRadius: '25px',
+                padding: '12px 18px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                width: '280px',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1)'
+              }
+            },
+              React.createElement(Plus, { style: { fontSize: '16px', color: '#9ca3af' } }),
+              React.createElement('input', {
+                type: 'text',
+                value: message,
+                onChange: (e) => setMessage(e.target.value),
+                onCompositionStart: () => setIsComposing(true),
+                onCompositionEnd: () => setIsComposing(false),
+                onKeyDown: (e) => {
+                  if (e.key === 'Enter' && !isComposing) {
+                    e.preventDefault();
+                    if (message.trim()) {
+                      handleSubmit();
+                    }
+                  }
+                },
+                placeholder: connectionStatus === 'connected' ? 'Describe your task...' : 'Miko正在准备中...',
+                disabled: connectionStatus !== 'connected',
+                style: {
+                  flex: 1,
+                  background: 'transparent',
+                  border: 'none',
+                  outline: 'none',
+                  color: '#374151',
+                  fontSize: '14px',
+                  opacity: connectionStatus === 'connected' ? 1 : 0.5
+                }
+              }),
+              React.createElement('button', {
+                onClick: handleSubmit,
+                style: {
+                  padding: 0,
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer'
+                }
+              },
+                React.createElement(Mic, { style: { fontSize: '16px', color: '#9ca3af' } })
+              )
+            )
+          )
+        )
+      );
+    };
+
+    // 添加旋转动画的CSS
+    const style = document.createElement('style');
+    style.textContent = `
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `;
+    document.head.appendChild(style);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const root = ReactDOM.createRoot(document.getElementById('root'));
+      root.render(React.createElement(FloatingChat));
+    });
+  </script>
+</body>
+
+</html>
+</text>
