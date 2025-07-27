@@ -1,8 +1,8 @@
-# 🐾 Miko - 智能桌面助手
+# 🐾 Miko - AI native 效率工具型桌宠
 
-> 你的专属桌面AI伙伴，通过自然语言完成各种任务
+Built in #AdventureX2025
 
-Miko 是一个智能桌面助手，可以帮你管理文件、发送邮件、查询天气、执行Python代码等各种任务。只需要用自然语言告诉它你想做什么，它就能帮你完成！
+Miko 是一个AI native 效率工具型桌宠，可以帮你收发邮件、整理桌面、执行Python代码、执行工作流等各种任务。只需要用自然语言告诉它你想做什么，它就能帮你完成！
 
 ## ✨ 主要功能
 
@@ -304,8 +304,8 @@ ISC License
 
 - **[Kiro IDE](https://kiro.ai/)** - 强大的AI编程工具，提供了出色的开发体验
 - **[Trae](https://trae.ai/)** - 智能代码助手，加速了开发过程
-- **[Kimi-K2](https://platform.moonshot.cn/)** - 优秀的Agent模型，为Miko提供了强大的AI能力
-- **[MiniMax](https://api.minimaxi.com/)** - 专业的AI服务，Build了Gmail收发邮件工具，并且用于起草和处理邮件
+- **[Kimi-K2](https://platform.moonshot.cn/)** - 优秀的大语言模型，为Miko提供了强大的AI能力
+- **[MiniMax](https://api.minimaxi.com/)** - 专业的AI服务，优化了邮件处理功能
 
 ## 🤝 贡献
 
