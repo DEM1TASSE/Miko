@@ -11,11 +11,11 @@ from email.mime.text import MIMEText
 from pathlib import Path
 from openai import OpenAI
 
-# 初始化 AI 客户端
+# 初始化 MiniMax AI 客户端
 import os
 client = OpenAI(
-    api_key=os.getenv("KIMI_API_KEY"),
-    base_url="https://api.moonshot.cn/v1"
+    api_key=os.getenv("MINIMAX_API_KEY"),
+    base_url="https://api.minimaxi.com/v1"
 )
 
 class GmailTool:
@@ -381,9 +381,10 @@ class GmailTool:
 }}"""
 
             response = client.chat.completions.create(
-                model="kimi-k2-0711-preview",
+                model="MiniMax-M1",
                 messages=[{"role": "user", "content": prompt}],
-                temperature=0.0
+                temperature=0.1,
+                max_tokens=2048
             )
             
             result = response.choices[0].message.content.strip()
